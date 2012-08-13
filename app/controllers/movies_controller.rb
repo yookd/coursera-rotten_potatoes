@@ -8,6 +8,16 @@ class MoviesController < ApplicationController
 
   def index
 
+    # RESTful URIs
+    if session[:ratings] && !params[:ratings]
+      if session[:redirect] == false || session[:redirect].nil?
+        session[:redirect] = true
+        redirect_to movies_path(session[:ratings])
+      else
+        session[:redirect] = false
+      end
+    end
+
     # If new filter params are specified, save them in session
     if params[:commit] == 'Refresh'
       session[:ratings] = params[:ratings]
