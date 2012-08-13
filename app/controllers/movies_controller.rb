@@ -12,26 +12,23 @@ class MoviesController < ApplicationController
     if session[:ratings] && !params[:ratings]
       if session[:redirect] == false || session[:redirect].nil?
         session[:redirect] = true
-        redirect_to movies_path(session[:ratings])
+        redirect_to movies_path(:ratings => session[:ratings], :sort => session[:sort])
       else
         session[:redirect] = false
       end
     end
 
     # If new filter params are specified, save them in session
-    if params[:commit] == 'Refresh'
+    if params[:ratings]
       session[:ratings] = params[:ratings]
-    elsif params[:ratings] != session[:ratings]
+    elsif params[:commit]
       # Save
-      params[:ratings] = session[:ratings]
+      session[:ratings] = nil
     end
 
     # Check if we are sorting, save in session
     if params[:sort]
       session[:sort] = params[:sort]
-    elsif session[:sort]
-      # Save
-      params[:sort] = session[:sort]
     end
 
     # Store the ratings and sort for highlight and retaining checkboxes
@@ -39,8 +36,10 @@ class MoviesController < ApplicationController
     @sort = session[:sort]
 
     # Check if session exists
-    if session[:ratings] && session[:sort]
-      @movies = Movie.find_all_by_rating(session[:ratings].keys, :order => session[:sort])
+    if @ratings
+      @movies = Movie.order(@sort).where("title != ''").select do |movie|
+        @ratings.include? movie.rating
+      end
     else
       @movies = nil
     end
